@@ -20,6 +20,7 @@ type alias Model =
   { input : String
   , todos : List Todo
   , countTodos : Int 
+  , uid : Int
   }
 
 type alias Todo = 
@@ -32,6 +33,7 @@ init =
   { input = ""
   , todos = [] 
   , countTodos = 0
+  , uid = 0
   }
 
 -- Update
@@ -45,7 +47,10 @@ update : Msg -> Model -> Model
 update msg model = 
   case msg of 
     Add ->
-      { model | todos = model.todos ++ [ { id = 1, description = model.input } ]}
+      { model 
+        | todos = model.todos ++ [ newTodo model.input model.uid ]
+        , uid = model.uid + 1
+      }
     Delete id ->
       { model | todos = List.filter (\t -> t.id /= id) model.todos }
     UpdateInput newInput -> 
@@ -74,3 +79,9 @@ viewTodo todo =
     [ div [] [ text todo.description ],
       button [ onClick (Delete todo.id) ] [ text "Remove" ]
     ]
+
+newTodo : String -> Int -> Todo
+newTodo description id =
+  { id = id
+  , description = description 
+  }
