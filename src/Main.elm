@@ -4,14 +4,12 @@ import Html.Attributes exposing (..)
 import Html.Events exposing (onInput, onClick)
 import Html.Keyed as Keyed
 
--- Add Todo
--- Remove Todo
-
 main =
-  Browser.sandbox 
+  Browser.document 
     { init = init
     , update = update
-    , view = view
+    , view = \model -> { title = "Todos by Amber", body = [view model] }
+    , subscriptions = \model -> Sub.none
     }
 
 -- Model
@@ -23,19 +21,14 @@ type alias Model =
   , uid : Int
   }
 
-type alias Todo = 
-  { id : Int
-  , description : String 
-  , completed : Bool
-  }
-
-init : Model
-init = 
-  { input = ""
+init : () -> ( Model, Cmd Msg )
+init _ = 
+  ({ input = ""
   , todos = [] 
   , countTodos = 0
   , uid = 0
   }
+  , Cmd.none )
 
 -- Update
 
@@ -45,18 +38,24 @@ type Msg
   | UpdateInput String
   | ToggleComplete Int Bool
 
-update : Msg -> Model -> Model
+update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model = 
   case msg of 
     Add ->
-      { model 
+      ( { model 
         | uid = model.uid + 1
         , todos = model.todos ++ [ newTodo model.input model.uid ]
       }
+      , Cmd.none
+      )
     Delete id ->
-      { model | todos = List.filter (\t -> t.id /= id) model.todos }
+      ( { model | todos = List.filter (\t -> t.id /= id) model.todos }
+      , Cmd.none
+      )
     UpdateInput newInput -> 
-      { model | input = newInput }
+      ( { model | input = newInput }
+      , Cmd.none
+      )
     ToggleComplete id isCompleted ->
       let
         updateTodo t =
@@ -64,8 +63,8 @@ update msg model =
             { t | completed = isCompleted }
           else
             t
-      in ( { model | todos = List.map updateTodo model.todos } )
-
+      in ( { model | todos = List.map updateTodo model.todos }
+      , Cmd.none )
 -- View
 
 view : Model -> Html Msg
@@ -79,6 +78,12 @@ view model =
           \todo -> viewKeyedTodo todo
           ) model.todos)
     ]
+
+type alias Todo = 
+  { id : Int
+  , description : String 
+  , completed : Bool
+  }
 
 viewKeyedTodo : Todo -> (String, Html Msg)
 viewKeyedTodo todo =
