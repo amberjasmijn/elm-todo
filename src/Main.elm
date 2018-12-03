@@ -21,13 +21,27 @@ type alias Model =
   , uid : Int
   }
 
-init : () -> ( Model, Cmd Msg )
-init _ = 
-  ({ input = ""
-  , todos = [] 
+type alias Todo = 
+  { id : Int
+  , description : String 
+  , completed : Bool
+  }
+
+emptyModel : Model
+emptyModel = 
+  { input = ""
+  , todos = 
+    [ { id = 0
+      , description = "This is an example"
+      , completed = False }
+    ] 
   , countTodos = 0
   , uid = 0
   }
+
+init : () -> ( Model, Cmd Msg )
+init _ = 
+  ( emptyModel
   , Cmd.none )
 
 -- Update
@@ -81,20 +95,16 @@ view model =
           , onInput UpdateInput 
           , type_ "text"
           ] []
-          , button [ onClick Add, class "btn-add" ] [ text "Add" ]    
+          , button [ onClick Add, class "btn-add" ] [ text "Add" ] 
         ]
-        , Keyed.ul [ class "todos" ]
-            (List.map (
-              \todo -> viewKeyedTodo todo
-              ) model.todos)
+        , viewTodos model.todos 
       ]
     ]
 
-type alias Todo = 
-  { id : Int
-  , description : String 
-  , completed : Bool
-  }
+viewTodos : List Todo -> Html Msg
+viewTodos items =
+  Keyed.ul [ class "todos" ]
+    ( List.map (\todo -> viewKeyedTodo todo) items )
 
 viewKeyedTodo : Todo -> (String, Html Msg)
 viewKeyedTodo todo =
@@ -102,17 +112,22 @@ viewKeyedTodo todo =
 
 viewTodo : Todo -> Html Msg
 viewTodo todo =
-  li []
+  li 
+    [ classList 
+      [ ( "todo-item", True )
+      , ( "todo-completed", todo.completed ) 
+      ] 
+    ]
     [ div 
-        [ class "todo-input" ] 
-        [ label [] 
-          [ input 
-            [ type_ "checkbox"
-            , onClick (ToggleComplete todo.id (not todo.completed))
-            , checked todo.completed 
-            ] []
-          , text todo.description ]
-        ]
+      [ class "todo-text"] 
+      [ label [] 
+        [ input 
+          [ type_ "checkbox"
+          , onClick (ToggleComplete todo.id (not todo.completed))
+          , checked todo.completed 
+          ] []
+        , text todo.description ]
+      ]
       , button [ onClick (Delete todo.id), class "btn-delete" ] [ text "Delete" ]
     ]
 
