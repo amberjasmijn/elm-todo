@@ -29,22 +29,28 @@ init =
 
 -- Update
 
-type Msg = AddTodo String | RemoveTodo String
+type Msg 
+  = AddTodo 
+  | RemoveTodo
+  | UpdateInput String
 
 update : Msg -> Model -> Model
 update msg model = 
   case msg of 
-    AddTodo input ->
-      { model | todos = List.append model.todos [input] }
-    RemoveTodo input ->
+    AddTodo ->
+      { model | todos = List.append model.todos [ model.input ] }
+    RemoveTodo ->
       { model | todos = model.todos }
+    UpdateInput newInput -> 
+      { model | input = newInput }
 
 -- View
 
 view : Model -> Html Msg
 view model =
   div []
-    [ input [ placeholder "Text to reverse", value model.input, onInput AddTodo ] [], 
-      ul []
-        (List.map (\l -> li [] [ text l ]) model.todos)    
+    [ input [ placeholder "Text to reverse", value model.input, onInput UpdateInput ] []
+    , ul []
+        (List.map (\l -> li [] [ text l ]) model.todos)
+    , button [ onClick AddTodo ] [ text "Add" ]    
     ]
