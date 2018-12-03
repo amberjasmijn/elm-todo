@@ -103,5 +103,5 @@ newTodo : String -> Int -> Todo
 newTodo description id =
   { id = id
   , description = description 
-  , completed = True
+  , completed = False
   }
