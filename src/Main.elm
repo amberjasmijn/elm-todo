@@ -8,7 +8,7 @@ main =
   Browser.document 
     { init = init
     , update = update
-    , view = \model -> { title = "Todos by Amber", body = [view model] }
+    , view = \model -> { title = "Tasks by Amber", body = [view model] }
     , subscriptions = \model -> Sub.none
     }
 
@@ -45,6 +45,7 @@ update msg model =
       ( { model 
         | uid = model.uid + 1
         , todos = model.todos ++ [ newTodo model.input model.uid ]
+        , input = ""
       }
       , Cmd.none
       )
@@ -65,18 +66,28 @@ update msg model =
             t
       in ( { model | todos = List.map updateTodo model.todos }
       , Cmd.none )
+      
 -- View
 
 view : Model -> Html Msg
 view model =
-  div []
-    [ h1 [] [ text "Todos" ]
-    , input [ placeholder "What do you want to do?", value model.input, onInput UpdateInput ] []
-    , button [ onClick Add ] [ text "Add" ]    
-    , Keyed.ul []
-        (List.map (
-          \todo -> viewKeyedTodo todo
-          ) model.todos)
+  div [ class "container" ]
+    [ viewHeader
+    , div [ class "content" ]
+      [ div [ class "input-group" ] 
+        [ input 
+          [ placeholder "What do you want to do?"
+          , value model.input
+          , onInput UpdateInput 
+          , type_ "text"
+          ] []
+          , button [ onClick Add, class "btn-add" ] [ text "Add" ]    
+        ]
+        , Keyed.ul [ class "todos" ]
+            (List.map (
+              \todo -> viewKeyedTodo todo
+              ) model.todos)
+      ]
     ]
 
 type alias Todo = 
@@ -91,17 +102,18 @@ viewKeyedTodo todo =
 
 viewTodo : Todo -> Html Msg
 viewTodo todo =
-  li 
-    []
+  li []
     [ div 
-        [] 
-        [ input 
-          [ type_ "checkbox"
-          , onClick (ToggleComplete todo.id (not todo.completed))
-          , checked todo.completed ] []
-        , text todo.description 
+        [ class "todo-input" ] 
+        [ label [] 
+          [ input 
+            [ type_ "checkbox"
+            , onClick (ToggleComplete todo.id (not todo.completed))
+            , checked todo.completed 
+            ] []
+          , text todo.description ]
         ]
-      , button [ onClick (Delete todo.id) ] [ text "Delete" ]
+      , button [ onClick (Delete todo.id), class "btn-delete" ] [ text "Delete" ]
     ]
 
 newTodo : String -> Int -> Todo
@@ -110,3 +122,10 @@ newTodo description id =
   , description = description 
   , completed = False
   }
+
+viewHeader : Html msg
+viewHeader = 
+  header [ class "header" ]
+    [ p [ class "subtitle" ] [ text "Build with Elm" ]
+    , h1 [ class "title" ] [ text "Your tasks" ]
+  ]
