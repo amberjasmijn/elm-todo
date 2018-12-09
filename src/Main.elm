@@ -17,8 +17,9 @@ main =
 type alias Model = 
   { input : String
   , todos : List Todo
-  , countTodos : Int 
+  , countTodos : Int
   , uid : Int
+  , filter : String
   }
 
 type alias Todo = 
@@ -30,13 +31,10 @@ type alias Todo =
 emptyModel : Model
 emptyModel = 
   { input = ""
-  , todos = 
-    [ { id = 0
-      , description = "This is an example"
-      , completed = False }
-    ] 
+  , todos = [] 
   , countTodos = 0
   , uid = 0
+  , filter = "All"
   }
 
 init : () -> ( Model, Cmd Msg )
@@ -51,6 +49,7 @@ type Msg
   | Delete Int
   | UpdateInput String
   | ToggleComplete Int Bool
+  | Filter String
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model = 
@@ -80,6 +79,9 @@ update msg model =
             t
       in ( { model | todos = List.map updateTodo model.todos }
       , Cmd.none )
+    Filter input ->
+      ( { model | filter = input }, Cmd.none )
+
       
 -- View
 
@@ -97,14 +99,25 @@ view model =
           ] []
           , button [ onClick Add, class "btn-add" ] [ text "Add" ] 
         ]
-        , viewTodos model.todos 
+        , viewTodos model.filter model.todos 
+        , viewControls
       ]
     ]
 
-viewTodos : List Todo -> Html Msg
-viewTodos items =
-  Keyed.ul [ class "todos" ]
-    ( List.map (\todo -> viewKeyedTodo todo) items )
+viewTodos : String -> List Todo -> Html Msg
+viewTodos filter items =
+  let 
+    hasFilter item =
+      case filter of
+        "Completed" -> 
+          item.completed
+        "Active" ->
+          not (item.completed)
+        _ ->
+          True
+  in 
+    Keyed.ul [ class "todos" ]
+      ( List.map (\todo -> viewKeyedTodo todo) ((List.filter hasFilter items)) )
 
 viewKeyedTodo : Todo -> (String, Html Msg)
 viewKeyedTodo todo =
@@ -143,4 +156,12 @@ viewHeader =
   header [ class "header" ]
     [ p [ class "subtitle" ] [ text "Build with Elm" ]
     , h1 [ class "title" ] [ text "Your tasks" ]
+    ]
+
+viewControls : Html Msg 
+viewControls = 
+  div [] 
+    [ button [ onClick ( Filter "All" ) ] [ text "Show all" ]
+    , button [ onClick ( Filter "Active" ) ] [ text "Active" ]
+    , button [ onClick ( Filter "Completed" ) ] [ text "Completed" ]
   ]
